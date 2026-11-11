@@ -14,6 +14,9 @@ Useful imports:
 
 Do not depend on test execution order. Fixtures: client, app, sample_book.
 """
+import copy
+ 
+import pytest
 from jsonschema import ValidationError, validate
  
 from tools import get_book_schema
@@ -53,5 +56,25 @@ def test_post_valid_book_delete_get_returns_404(client):
     assert getback.status_code == 404
     assert getback.get_json()["code"] == "NOT_FOUND"
 
+def test_response_extra_field_blocked(client):
+    schema = get_book_schema()
+    created = client.post(
+        "/books",
+        json={
+            "title": "API Design Patterns",
+            "author": "J.J. Geewax",
+            "year": 2021,
+            "isbn": "9781617295850",
+        },
+    )
+    assert created.status_code == 201
+    book = created.get_json()
+ 
+    validate(book, schema)
+ 
+    leaky = copy.deepcopy(book)
+    leaky["password_hash"] = "should-never-be-returned"
+    with pytest.raises(ValidationError):
+        validate(leaky, schema)
 
 
