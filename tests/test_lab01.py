@@ -14,3 +14,44 @@ Useful imports:
 
 Do not depend on test execution order. Fixtures: client, app, sample_book.
 """
+from jsonschema import ValidationError, validate
+ 
+from tools import get_book_schema
+
+def test_list_books_empty_returns_empty_array(client):
+    response = client.get("/books")
+ 
+    assert response.status_code == 200
+    assert response.content_type == "application/json"
+    assert response.get_json() == []
+
+def test_id_books_not_exist_returns_404_and_json(client):
+    response = client.get("/books/9999")
+
+    assert response.status_code == 404
+    assert response.content_type == "application/json"
+    assert response.get_json()["code"] == "NOT_FOUND"
+
+def test_post_book_with_only_author_returns_400_and_errors(client):
+    response = client.post("books", json={"author": "Me"})
+
+    assert response.status_code == 400
+    body = response.get_json()
+    assert body["code"] == "VALIDATION_ERROR"
+    fields = {error["field"] for error in body["errors"]}
+    assert "title" in fields
+
+def test_post_valid_book_delete_get_returns_404(client):
+    created = client.post("/books", json={"title": "Temp", "author": "Someone"})
+
+    assert created.status_code == 201
+    book_id = created.get_json()["id"]
+ 
+    assert client.delete(f"/books/{book_id}").status_code == 204
+ 
+    getback = client.get(f"/books/{book_id}")
+    assert getback.status_code == 404
+    assert getback.get_json()["code"] == "NOT_FOUND"
+
+
+
