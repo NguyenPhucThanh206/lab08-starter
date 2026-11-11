@@ -1,8 +1,6 @@
 # lab08-starter — API Testing & Quality Assurance
 
-**UET.IT3298 · Buổi 8 · Flask 3.x / SQLAlchemy / pytest / OpenAPI / Postman / Locust**
-
-Đây là **starter cho sinh viên**, không phải bản đáp án. Books API có thể chạy ngay; một số bài kiểm thử và nội dung OpenAPI được cố ý để sinh viên hoàn thiện. Nội dung phù hợp với 4 lab ở slide 13, 17, 23, 31 của bài giảng.
+**Flask 3.x / SQLAlchemy / pytest / OpenAPI / Postman / Locust**
 
 ## 1. Chuẩn bị và chạy API
 
@@ -44,7 +42,7 @@ SQLite lưu tại `instance/books.db` (không commit lên Git). API không có a
 
 Schema JSON của Book trả `id`, `title`, `author`, `year`, `isbn`. Trong request, `title` và `author` là required. `year`/`isbn` tùy chọn; ISBN nếu có là 13 chữ số và unique. **POST lặp lại chỉ 409 nếu xảy ra xung đột ISBN**, không phải vì lặp payload nói chung. DELETE lần đầu 204, lần sau 404; điều này không mâu thuẫn với idempotency vì trạng thái tài nguyên sau hai lần là như nhau.
 
-## 2. Lab 1 — pytest, 8 phút (slide 13)
+## 2. Lab 1 — pytest
 
 ```bash
 python -m pytest -v
@@ -52,7 +50,7 @@ python -m pytest -v
 
 Hai smoke test có sẵn nhằm xác nhận starter hoạt động. Hãy viết **4 test bắt buộc + 1 bonus** trong `tests/test_lab01.py`, theo các TODO trong file. Fixture `app`, `client`, `sample_book` ở `tests/conftest.py`; dùng `get_book_schema()` từ `tools.py` khi cần. Mỗi test có DB riêng, không phụ thuộc thứ tự. Lưu ý: schema Book trong `openapi.yaml` **đang cố ý sai ở trường year** cho Lab 2; muốn validate response mẫu có `year`, cần hoàn thành sửa lỗi đó trước.
 
-## 3. Lab 2 — OpenAPI/Spectral, 5 phút (slide 17)
+## 3. Lab 2 — OpenAPI/Spectral
 
 Ba lỗi **cố ý** trong `openapi.yaml`:
 
@@ -67,7 +65,7 @@ spectral lint openapi.yaml --ruleset .spectral.yml
 
 `.spectral.yml` đã có hai rule riêng kiểm tra (2) và (3); `spectral:oas` kiểm tra các quy tắc nền, bao gồm operationId. Hãy sửa 3 lỗi trong spec và **tự bổ sung custom rule** kiểm tra response 200 có schema không rỗng. Lưu ý: Spectral linter không tự đối chiếu code Flask; một spec hợp lệ vẫn có thể khác hành vi thực tế. Hãy dùng pytest + jsonschema để kiểm chứng response.
 
-## 4. Lab 3 — Postman/Newman, 5 phút (slide 23)
+## 4. Lab 3 — Postman/Newman
 
 File `books-api.postman_collection.json` chứa 5 happy-path requests chạy theo thứ tự: list → create → get → update → delete. Request tạo lưu `book_id` trong collection variables. Hãy:
 
@@ -84,7 +82,7 @@ newman run books-api.postman_collection.json \
 
 Lưu ý: cần chạy server trước. `data.csv` là dữ liệu ví dụ để thực hành data-driven iteration; khi sử dụng `-d data.csv`, collection sẽ lặp theo số hàng. Đừng hard-code credentials/tokens trong file đẩy lên Git.
 
-## 5. Lab 4 — Locust, 10 phút (slide 31)
+## 5. Lab 4 — Locust
 
 `performance/locustfile.py` là baseline có weighted tasks; `performance/locustfile_realistic.py` minh hoạ flow có state và demo login. Chạy API trong terminal 1; terminal 2:
 
@@ -123,9 +121,7 @@ lab08-starter/
 └── .github/workflows/tests.yml
 ```
 
-## Giới hạn cần biết
+## Lưu ý:
 
-- Demo authentication chỉ nhằm minh hoạ workflow của slide 29; endpoint Books CRUD không yêu cầu bearer token. Không dùng trong triển khai thật.
-- OpenAPI cố ý chứa lỗi nên các công cụ contract check phải fail **trước khi sinh viên sửa**.
-- Không có bản sao GitHub công khai tại URL ví dụ trong slide. Hãy dùng ZIP này, sau đó tự push lên repository nếu cần.
+- OpenAPI cố ý chứa lỗi nên các công cụ contract check phải fail **trước khi sửa**.
 - `pytest` và Newman đều chạy được độc lập sau khi đã cài dependency, không cần Postman GUI.
